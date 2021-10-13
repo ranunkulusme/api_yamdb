@@ -9,10 +9,12 @@ from rest_framework import status
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Users
+from reviews.models import Users, Categories, Genres, Titles
 
-from .serializers import UsersSerializer, MeSerializer, SingUpSerializer, TokenSerializer
-from .permissions import IsAdmin, Me
+from .serializers import (UsersSerializer, MeSerializer, SingUpSerializer, TokenSerializer,
+                          CategoriesSerializer, GenresSerializer, TitlesSerializer)
+
+from .permissions import IsAdmin, Me, IsAdminUserOrReadOnly
 
 
 def sent_verification_code(user):
@@ -76,6 +78,29 @@ class UsersViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     lookup_field = "username"
     lookup_value_regex = "[^/]+"
+
+
+class TitlesViewSet(viewsets.ModelViewSet):
+    """Вьюсет для произведений"""
+    queryset = Titles.objects.all()
+    serializer_class = TitlesSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('slug', 'year', 'name')
+
+
+class GenresViewSet(viewsets.ModelViewSet):
+    """Вьюсет для жанров"""
+    queryset = Genres.objects.all()
+    serializer_class = GenresSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
+
+
+class CategoriesViewSet(viewsets.ModelViewSet):
+    """Вьюсет для категорий"""
+    queryset = Categories.objects.all()
+    serializer_class = CategoriesSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
 
 
 

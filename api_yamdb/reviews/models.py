@@ -4,11 +4,11 @@ import datetime
 from .validations import validate_score
 
 
-class Users(AbstractUser):
+class User(AbstractUser):
     CHOICES = (
         ('user', 'пользователь'),
         ('moderator', 'модератор'),
-        ('admin', 'Администратор'),
+        ('admin', 'администратор'),
     )
     email = models.EmailField(
         max_length=254,
@@ -35,42 +35,40 @@ class Users(AbstractUser):
         ]
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     """Класс для описания жанров в бд"""
     #  возможно нужно сделать массив строк
-    title = models.CharField(max_length=256)
+    name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True, max_length=50)
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.name}'
 
 
-class Categories(models.Model):
+class Category(models.Model):
     """Класс для описания категорий в бд"""
-    title = models.CharField(max_length=256)
+    name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True, max_length=50)
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.name}'
 
 
-class Titles(models.Model):
+class Title(models.Model):
     """Класс для описания произведений в бд"""
     YEAR_CHOICES = [(r, r) for r in range(0, datetime.date.today().year + 1)]
     name = models.TextField('Имя', max_length=200)
     year = models.IntegerField(('Year'), choices=YEAR_CHOICES,
                                default=datetime.datetime.now().year)
-    # TODO необходимость поля author под вопросом
-    author = models.ForeignKey(
-        Users, on_delete=models.CASCADE, related_name='Titles')
-    description = models.TextField('Описание', max_length=500)
-    genre = models.ForeignKey(
-        Genres, related_name="titles1",
-        on_delete=models.DO_NOTHING,
+    #  author = models.ForeignKey(User, on_delete=models.CASCADE,
+    #                             related_name='titles')
+    description = models.TextField('Описание', null=True)
+    genre = models.ManyToManyField(
+        Genre, related_name="titles1",
         blank=True, null=True,
     )
     category = models.ForeignKey(
-        Categories, related_name="titles",
+        Category, related_name="titles",
         #  не знаю как будет себя вести DO_NOTHING
         on_delete=models.DO_NOTHING,
         blank=True, null=True,
@@ -80,26 +78,25 @@ class Titles(models.Model):
         return self.name
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     """
     Отзывы к произведениям
     """
 
-    title_id = models.ForeignKey(
-        Titles,
+    title = models.ForeignKey(
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='ID произведения'
     )
     author = models.ForeignKey(
-        Users,
+        User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор отзыва',
     )
     text = models.TextField(
-        verbose_name='Текст отзыва',
-        max_length=250
+        verbose_name='Текст отзыва'
     )
     score = models.IntegerField(
         verbose_name='Оценка',
@@ -118,7 +115,7 @@ class Reviews(models.Model):
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=['author', 'title_id'], name='unique_author_title_id'
+                fields=['author', 'title'], name='unique_author_title'
             )
         ]
 
@@ -130,8 +127,8 @@ class Comments(models.Model):
     """
     Комментарии к отзывам на произведения
     """
-    review_id = models.ForeignKey(
-        Reviews,
+    review = models.ForeignKey(
+        Review,
         related_name='comments',
         verbose_name='ID отзыва',
         on_delete=models.CASCADE,
@@ -139,7 +136,7 @@ class Comments(models.Model):
         null=True,
     )
     author = models.ForeignKey(
-        Users,
+        User,
         verbose_name='Автор комментария',
         on_delete=models.CASCADE,
         blank=True,

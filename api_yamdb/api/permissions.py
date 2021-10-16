@@ -5,7 +5,8 @@ from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 class IsAdminOrSuperuser(permissions.BasePermission):
     def has_permission(self, request, view):
         if (request.user.is_authenticated and request.user.role == 'admin'
-                or request.user.is_authenticated and request.user.is_superuser):
+                or request.user.is_authenticated
+                and request.user.is_superuser):
             return True
 
 
@@ -25,8 +26,9 @@ class OwnerOrReadOnly(permissions.BasePermission):
             return True
 
     def has_object_permission(self, request, view, obj):
-        if (request.method == 'DELETE' and
-                request.user.is_authenticated and request.user.role == 'admin'):
+        if (request.method == 'DELETE'
+                and request.user.is_authenticated
+                and request.user.role == 'admin'):
             return True
 
 
@@ -38,9 +40,9 @@ class AdminOrModeratorOrRead(permissions.BasePermission):
             return True
 
     def has_object_permission(self, request, view, obj):
-        if (request.method in SAFE_METHODS or
-                (request.user.is_authenticated and
-                request.user.role == 'admin' or
-                request.user == obj.author or
-                request.user.role == 'moderator')):
+        if (request.method in SAFE_METHODS
+            or (request.user.is_authenticated
+                and request.user.role == 'admin'
+                or request.user == obj.author
+                or request.user.role == 'moderator')):
             return True

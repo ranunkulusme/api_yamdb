@@ -1,6 +1,8 @@
 import csv
+
 from django.core.management.base import BaseCommand, CommandError
-from reviews.models import Category, Genre, Title, Review, Comments, User
+
+from reviews.models import Category, Comments, Genre, Review, Title, User
 
 
 class Command(BaseCommand):

@@ -1,6 +1,8 @@
+import datetime
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-import datetime
+
 from .validations import validate_score
 
 
@@ -37,7 +39,6 @@ class User(AbstractUser):
 
 class Genre(models.Model):
     """Класс для описания жанров в бд"""
-    #  возможно нужно сделать массив строк
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True, max_length=50)
 
@@ -60,8 +61,6 @@ class Title(models.Model):
     name = models.TextField('Имя', max_length=200)
     year = models.IntegerField(('Year'), choices=YEAR_CHOICES,
                                default=datetime.datetime.now().year)
-    #  author = models.ForeignKey(User, on_delete=models.CASCADE,
-    #                             related_name='titles')
     description = models.TextField('Описание', null=True)
     genre = models.ManyToManyField(
         Genre, related_name="titles1",
@@ -69,8 +68,7 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category, related_name="titles",
-        #  не знаю как будет себя вести DO_NOTHING
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         blank=True, null=True,
     )
 

@@ -1,8 +1,8 @@
-from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
-
-from reviews.models import User, Category, Genre, Title, Comments, Review
 import datetime
+
+from rest_framework import serializers
+from reviews.models import Category, Comments, Genre, Review, Title, User
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,7 +75,6 @@ class TitlesWriteSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category')
-        #  read_only_fields = ('author',)
 
     def validate_year(self, value):
         current_year = datetime.datetime.now().year
@@ -88,15 +87,15 @@ class TitlesWriteSerializer(serializers.ModelSerializer):
 
 class TitlesReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения произведений"""
-    #  id = serializers.IntegerField(write_only=True, required=False)
     genre = GenreSerializer(required=False, many=True)
     category = CategorySerializer(required=False)
+    rating = serializers.IntegerField(read_only=True, required=False)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description',
+        fields = ('id', 'name', 'year', 'rating', 'description',
                   'genre', 'category')
- 
+
     def __str__(self):
         return self.name
 

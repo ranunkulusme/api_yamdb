@@ -1,22 +1,23 @@
-from rest_framework import viewsets
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import filters
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import status
-from django.contrib.auth.tokens import default_token_generator
-from rest_framework_simplejwt.tokens import AccessToken
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.db.models import Avg
+from rest_framework_simplejwt.tokens import AccessToken
+from .filters import TitleFilter
 
-from reviews.models import User, Category, Genre, Title, Comments, Review
+from reviews.models import Category, Genre, Review, Title, User
 
-from .serializers import (UserSerializer, MeSerializer, SingUpSerializer,
-                          CategorySerializer, GenreSerializer, TitlesReadSerializer, TitlesWriteSerializer,
-                          CommentSerializer, ReviewSerializer, TokenSerializer)
-
-from .permissions import (IsAdminOrSuperuser, IsAdminUserOrReadOnly,
-                          OwnerOrReadOnly, AdminOrModeratorOrRead)
+from .permissions import (AdminOrModeratorOrRead, IsAdminOrSuperuser,
+                          IsAdminUserOrReadOnly, OwnerOrReadOnly)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, MeSerializer, ReviewSerializer,
+                          SingUpSerializer, TitlesReadSerializer,
+                          TitlesWriteSerializer, TokenSerializer,
+                          UserSerializer)
 
 
 def sent_verification_code(user):
@@ -89,11 +90,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений"""
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(rating=Avg("reviews__score"))
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     search_fields = ('slug', 'year', 'name')
-    filterset_fields = ('name', 'year', 'genre__slug')
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

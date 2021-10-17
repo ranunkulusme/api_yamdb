@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -172,8 +173,16 @@ class CommentsViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOrModeratorOrRead,)
 
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
-        reviews = title.reviews.get(pk=self.kwargs['review_id'])
+        title_id = self.kwargs['title_id']
+        review_id = self.kwargs['review_id']
+        title = get_object_or_404(Title, pk=title_id)
+        try:
+            reviews = title.reviews.get(pk=review_id)
+        except Review.DoesNotExist:
+            raise ValidationError(
+                {'detail': (f'Отзыва с ID {review_id} к произведению '
+                            f'{title} не существует')}
+            )
         return reviews.comments.all()
 
     def perform_create(self, serializer):

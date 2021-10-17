@@ -1,6 +1,7 @@
 import datetime
 
 from rest_framework import serializers
+
 from reviews.models import Category, Comments, Genre, Review, Title, User
 
 
@@ -29,10 +30,13 @@ class SingUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError("me - недопустимый username")
-        return data
+    def validate_username(self, value):
+        """
+        Check that username is not me.
+        """
+        if 'me' == value:
+            raise serializers.ValidationError("me - invalid name")
+        return value
 
 
 class TokenSerializer(serializers.Serializer):
@@ -106,23 +110,20 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
+    score = serializers.IntegerField(max_value=10, min_value=0)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date',)
 
     def validate(self, data):
-        if not 0 <= data['score'] <= 10:
-            raise serializers.ValidationError(
-                'Поставьте оценку от 0 до 10'
-            )
         user = self.context['request'].user
-
-        reviews = Review.objects.filter(author=user)
-        titles_id_user = [review.title_id for review in reviews]
         title_id = self.context['request'].parser_context['kwargs']['title_id']
         action_method = self.context['request'].method
-        if int(title_id) in titles_id_user and action_method == 'POST':
+
+        reviews = Review.objects.filter(
+            author=user).filter(title_id=title_id).exists()
+        if reviews and action_method == 'POST':
             raise serializers.ValidationError(
                 'Нельзя дважды оставить отзыва на одно и тоже произведение'
             )

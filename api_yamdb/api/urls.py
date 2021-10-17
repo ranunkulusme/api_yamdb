@@ -20,11 +20,13 @@ router.register(
     CommentsViewSet, basename='comments')
 
 urlpatterns = [
-    path('v1/users/me/', get_update_me, name='me'),
-    path('v1/categories/<slug:slug>/', delete_categories,
-         name='delete_categories'),
-    path('v1/genres/<slug:slug>/', delete_genre, name='delete_genre'),
-    path('v1/', include(router.urls)),
-    path('v1/auth/signup/', signup, name='signup'),
-    path('v1/auth/token/', get_token, name='gettoken'),
+    path('v1/', include([
+        path('users/me/', get_update_me, name='me'),
+        path('categories/<slug:slug>/', delete_categories,
+             name='delete_categories'),
+        path('genres/<slug:slug>/', delete_genre, name='delete_genre'),
+        path('auth/signup/', signup, name='signup'),
+        path('auth/token/', get_token, name='gettoken'),
+        path('', include(router.urls)),
+    ]))
 ]

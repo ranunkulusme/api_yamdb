@@ -4,7 +4,7 @@ from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 
 class IsAdminOrSuperuser(permissions.BasePermission):
     def has_permission(self, request, view):
-        if (request.user.is_authenticated and request.user.role == 'admin'
+        if (request.user.is_authenticated and request.user.is_adminisrator
                 or request.user.is_authenticated
                 and request.user.is_superuser):
             return True
@@ -13,7 +13,7 @@ class IsAdminOrSuperuser(permissions.BasePermission):
 class IsAdminUserOrReadOnly(IsAdminUser):
 
     def has_permission(self, request, view):
-        if (request.user.is_authenticated and request.user.role == 'admin'
+        if (request.user.is_authenticated and request.user.is_adminisrator
                 or request.method in SAFE_METHODS):
             return True
 
@@ -21,14 +21,14 @@ class IsAdminUserOrReadOnly(IsAdminUser):
 class OwnerOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        if (request.user.is_authenticated and request.user.role == 'admin'
+        if (request.user.is_authenticated and request.user.is_adminisrator
                 or request.method in SAFE_METHODS):
             return True
 
     def has_object_permission(self, request, view, obj):
         if (request.method == 'DELETE'
                 and request.user.is_authenticated
-                and request.user.role == 'admin'):
+                and request.user.is_adminisrator):
             return True
 
 
@@ -42,7 +42,7 @@ class AdminOrModeratorOrRead(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if (request.method in SAFE_METHODS
             or (request.user.is_authenticated
-                and request.user.role == 'admin'
+                and request.user.is_adminisrator
                 or request.user == obj.author
-                or request.user.role == 'moderator')):
+                or request.user.is_moderator)):
             return True

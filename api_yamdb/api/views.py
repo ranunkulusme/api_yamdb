@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
+from api_yamdb.settings import EMAIL
 from reviews.models import Category, Genre, Review, Title, User
 
 from .filters import TitleFilter
@@ -25,7 +26,7 @@ def sent_verification_code(user):
     send_mail(
         'Код подтверждения',
         f'Ваш код: {confirmation_code}',
-        'db_yamdb@example.com',
+        EMAIL,
         [user.email],
         fail_silently=False,
     )
@@ -35,9 +36,9 @@ def sent_verification_code(user):
 def signup(request):
     serializer = SingUpSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user = User.objects.get_or_create(username=serializer.data['username'],
-                                          email=serializer.data['email'])
-        user = get_object_or_404(User, username=serializer.data['username'])
+        user, _ = User.objects.get_or_create(
+            username=serializer.data['username'],
+            email=serializer.data['email'])
         sent_verification_code(user)
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -107,7 +108,6 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('slug',)
     permission_classes = (IsAdminUserOrReadOnly,)
     search_fields = ('slug', 'name')
 
@@ -116,7 +116,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 def delete_genre(request, slug):
     genre = get_object_or_404(Genre, slug=slug)
     if request.user.is_authenticated:
-        if request.user.role == 'admin':
+        if request.user.is_adminisrator:
             genre.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
@@ -137,7 +137,7 @@ def delete_categories(request, slug):
     category = get_object_or_404(Category,
                                  slug=slug)
     if request.user.is_authenticated:
-        if request.user.role == 'admin':
+        if request.user.is_adminisrator:
             category.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)

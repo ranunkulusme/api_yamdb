@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -27,6 +25,18 @@ class User(AbstractUser):
         choices=CHOICES,
         default=CHOICES[0][0]
     )
+
+    @property
+    def is_adminisrator(self):
+        return self.role == 'admin'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    @property
+    def is_user(self):
+        return self.role == 'user'
 
     class Meta:
         constraints = [
@@ -57,10 +67,8 @@ class Category(models.Model):
 
 class Title(models.Model):
     """Класс для описания произведений в бд"""
-    YEAR_CHOICES = [(r, r) for r in range(0, datetime.date.today().year + 1)]
     name = models.TextField('Имя', max_length=200)
-    year = models.IntegerField(('Year'), choices=YEAR_CHOICES,
-                               default=datetime.datetime.now().year)
+    year = models.IntegerField(max_length=4)
     description = models.TextField('Описание', null=True)
     genre = models.ManyToManyField(
         Genre, related_name="titles1",

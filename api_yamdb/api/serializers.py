@@ -1,6 +1,7 @@
 import datetime
 
 from rest_framework import serializers
+
 from reviews.models import Category, Comments, Genre, Review, Title, User
 
 
@@ -29,10 +30,13 @@ class SingUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError("me - недопустимый username")
-        return data
+    def validate_username(self, value):
+        """
+        Check that username is not me.
+        """
+        if 'me' == value:
+            raise serializers.ValidationError("me - invalid name")
+        return value
 
 
 class TokenSerializer(serializers.Serializer):

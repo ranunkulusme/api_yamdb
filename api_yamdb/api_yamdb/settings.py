@@ -132,3 +132,6 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 # constant
 
 EMAIL = 'db_yamdb@example.com'
+ADMIN = 'admin'
+USER = 'user'
+MODERATOR = 'moderator'

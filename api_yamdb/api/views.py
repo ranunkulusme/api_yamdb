@@ -62,22 +62,22 @@ def get_token(request):
 
 @api_view(['GET', 'PATCH'])
 def get_update_me(request):
-    if request.user.is_authenticated:
-        if request.method == "PATCH":
-            me = get_object_or_404(User, id=request.user.id)
-            serializer = MeSerializer(me, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+    if request.user.is_anonymous:
+        return Response(
+            "Пожалуйста авторизуйтесь",
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+    if request.method == "GET":
         me = get_object_or_404(User, id=request.user.id)
         serializer = MeSerializer(me)
         return Response(serializer.data)
-    return Response(
-        "Пожалуйста авторизуйтесь",
-        status=status.HTTP_401_UNAUTHORIZED,
-    )
+    me = get_object_or_404(User, id=request.user.id)
+    serializer = MeSerializer(me, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -116,12 +116,12 @@ class GenreViewSet(viewsets.ModelViewSet):
 @api_view(['DELETE'])
 def delete_genre(request, slug):
     genre = get_object_or_404(Genre, slug=slug)
-    if request.user.is_authenticated:
-        if request.user.is_adminisrator:
-            genre.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
-    return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if request.user.is_anonymous:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if request.user.is_adminisrator:
+        genre.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -137,12 +137,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
 def delete_categories(request, slug):
     category = get_object_or_404(Category,
                                  slug=slug)
-    if request.user.is_authenticated:
-        if request.user.is_adminisrator:
-            category.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
-    return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if request.user.is_anonymous:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    if request.user.is_adminisrator:
+        category.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):

@@ -1,14 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from api_yamdb.settings import ADMIN, MODERATOR, USER
+
 from .validations import validate_score
 
 
 class User(AbstractUser):
     CHOICES = (
-        ('user', 'пользователь'),
-        ('moderator', 'модератор'),
-        ('admin', 'администратор'),
+        (USER, 'пользователь'),
+        (MODERATOR, 'модератор'),
+        (ADMIN, 'администратор'),
     )
     email = models.EmailField(
         max_length=254,
@@ -28,15 +30,15 @@ class User(AbstractUser):
 
     @property
     def is_adminisrator(self):
-        return self.role == 'admin'
+        return self.role == ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == MODERATOR
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == USER
 
     class Meta:
         constraints = [
@@ -68,10 +70,10 @@ class Category(models.Model):
 class Title(models.Model):
     """Класс для описания произведений в бд"""
     name = models.TextField('Имя', max_length=200)
-    year = models.IntegerField(max_length=4)
+    year = models.PositiveIntegerField(max_length=4)
     description = models.TextField('Описание', null=True)
     genre = models.ManyToManyField(
-        Genre, related_name="titles1",
+        Genre, related_name="titles",
         blank=True, null=True,
     )
     category = models.ForeignKey(
